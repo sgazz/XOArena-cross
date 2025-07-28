@@ -268,11 +268,11 @@ body {
   font-weight: 500;
 }
 
-/* Boards Grid - Uniform 4x2 Layout */
+/* Boards Grid - Uniform 2x4 Layout */
 .boards-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(4, 1fr);
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-md);
 }
