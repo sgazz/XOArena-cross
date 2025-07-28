@@ -18,7 +18,6 @@ interface GameBoard {
 
 const TicTacToe: React.FC = () => {
   const [gameBoards, setGameBoards] = useState<GameBoard[]>([]);
-  const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [score, setScore] = useState({ X: 0, O: 0, draws: 0 });
 
   useEffect(() => {
@@ -31,10 +30,6 @@ const TicTacToe: React.FC = () => {
       winner: null
     }));
     setGameBoards(initialBoards);
-
-    // Animate logo on mount
-    const timer = setTimeout(() => setGameStarted(true), 500);
-    return () => clearTimeout(timer);
   }, []);
 
   const calculateWinner = (squares: Square[]): string | null => {
@@ -154,19 +149,8 @@ const TicTacToe: React.FC = () => {
   };
 
   const renderGameBoard = (board: GameBoard) => {
-    const status = board.winner 
-      ? `🏆 ${board.winner} pobedio!` 
-      : board.gameOver 
-      ? '🤝 Nerešeno!' 
-      : `🎯 ${board.xIsNext ? 'X' : 'O'}`;
-
     return (
       <div key={board.id} className="game-board-container">
-        <div className="board-header">
-          <h3 className="board-title">Tabla {board.id + 1}</h3>
-          <div className="board-status">{status}</div>
-        </div>
-        
         <div className="board-grid">
           {Array(9).fill(null).map((_, i) => renderSquare(board.id, i))}
         </div>
@@ -176,72 +160,26 @@ const TicTacToe: React.FC = () => {
 
   return (
     <div className="xoa-container">
-      {/* Animated Background */}
-      <div className="xoa-background">
-        <div className="floating-shapes">
-          <div className="shape shape-1"></div>
-          <div className="shape shape-2"></div>
-          <div className="shape shape-3"></div>
-        </div>
+      <div className="boards-grid">
+        {gameBoards.map(board => renderGameBoard(board))}
       </div>
 
-      {/* Header with Logo */}
-      <div className="xoa-header">
-        <div className={`xoa-logo ${gameStarted ? 'animate' : ''}`}>
-          <div className="logo-circle">
-            <div className="logo-xo">XO</div>
-            <div className="logo-arena">ARENA</div>
-            <div className="logo-glow"></div>
-          </div>
-        </div>
+      <div className="game-actions">
+        <button 
+          className="action-btn primary-btn"
+          onClick={resetGame}
+        >
+          <span className="btn-icon">🔄</span>
+          <span className="btn-text">Nova Igra</span>
+        </button>
         
-        {/* Score Board */}
-        <div className="xoa-score-board">
-          <div className="score-item">
-            <span className="score-label">X</span>
-            <span className="score-value">{score.X}</span>
-          </div>
-          <div className="score-item">
-            <span className="score-label">O</span>
-            <span className="score-value">{score.O}</span>
-          </div>
-          <div className="score-item">
-            <span className="score-label">Draw</span>
-            <span className="score-value">{score.draws}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Game Cards Container */}
-      <div className="xoa-game-cards-container">
-        <div className="cards-header">
-          <h1 className="game-title">XOArena - 8 Tabli</h1>
-          <div className="game-description">
-            Igrajte na 8 tabli istovremeno! Svaka tabla je nezavisna igra.
-          </div>
-        </div>
-        
-        <div className="boards-grid">
-          {gameBoards.map(board => renderGameBoard(board))}
-        </div>
-
-        <div className="game-actions">
-          <button 
-            className="action-btn primary-btn"
-            onClick={resetGame}
-          >
-            <span className="btn-icon">🔄</span>
-            <span className="btn-text">Nova Igra</span>
-          </button>
-          
-          <button 
-            className="action-btn secondary-btn"
-            onClick={resetScore}
-          >
-            <span className="btn-icon">📊</span>
-            <span className="btn-text">Reset Score</span>
-          </button>
-        </div>
+        <button 
+          className="action-btn secondary-btn"
+          onClick={resetScore}
+        >
+          <span className="btn-icon">📊</span>
+          <span className="btn-text">Reset Score</span>
+        </button>
       </div>
     </div>
   );
