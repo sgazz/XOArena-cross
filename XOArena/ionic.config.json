@@ -1,0 +1,7 @@
+{
+  "name": "XOArena",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}

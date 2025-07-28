@@ -1,0 +1,63 @@
+#container {
+  text-align: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#container strong {
+  font-size: 20px;
+  line-height: 26px;
+}
+
+#container p {
+  font-size: 16px;
+  line-height: 22px;
+  color: #8c8c8c;
+  margin: 0;
+}
+
+#container a {
+  text-decoration: none;
+}
+
+/* XOArena Dark Theme */
+ion-content {
+  --background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  --color: #ffffff;
+}
+
+ion-header {
+  --background: linear-gradient(90deg, #1a1a2e, #16213e);
+  --color: #ffffff;
+}
+
+ion-toolbar {
+  --background: linear-gradient(90deg, #1a1a2e, #16213e);
+  --color: #ffffff;
+  --border-color: #ff6b35;
+}
+
+ion-title {
+  color: #ffd700 !important;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Center the game container */
+ion-content {
+  --padding-start: 0px;
+  --padding-end: 0px;
+  --padding-top: 0px;
+  --padding-bottom: 0px;
+}
+
+/* Responsive design for the game */
+@media (max-width: 768px) {
+  ion-content {
+    --padding-start: 0px;
+    --padding-end: 0px;
+  }
+}
