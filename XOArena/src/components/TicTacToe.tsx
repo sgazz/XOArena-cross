@@ -8,14 +8,30 @@ interface Square {
   isHovered: boolean;
 }
 
+interface GameBoard {
+  id: number;
+  squares: Square[];
+  xIsNext: boolean;
+  gameOver: boolean;
+  winner: string | null;
+}
+
 const TicTacToe: React.FC = () => {
-  const [squares, setSquares] = useState<Square[]>(Array(9).fill({ value: null, isWinning: false, isHovered: false }));
-  const [xIsNext, setXIsNext] = useState<boolean>(true);
-  const [gameOver, setGameOver] = useState<boolean>(false);
+  const [gameBoards, setGameBoards] = useState<GameBoard[]>([]);
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [score, setScore] = useState({ X: 0, O: 0, draws: 0 });
 
   useEffect(() => {
+    // Initialize 8 game boards
+    const initialBoards: GameBoard[] = Array.from({ length: 8 }, (_, index) => ({
+      id: index,
+      squares: Array(9).fill({ value: null, isWinning: false, isHovered: false }),
+      xIsNext: true,
+      gameOver: false,
+      winner: null
+    }));
+    setGameBoards(initialBoards);
+
     // Animate logo on mount
     const timer = setTimeout(() => setGameStarted(true), 500);
     return () => clearTimeout(timer);
@@ -37,20 +53,21 @@ const TicTacToe: React.FC = () => {
     return null;
   };
 
-  const handleClick = (i: number) => {
-    if (squares[i].value || gameOver) return;
+  const handleClick = (boardId: number, squareIndex: number) => {
+    const board = gameBoards[boardId];
+    if (board.squares[squareIndex].value || board.gameOver) return;
 
-    const newSquares = squares.slice();
-    newSquares[i] = { value: xIsNext ? 'X' : 'O', isWinning: false, isHovered: false };
+    const newSquares = board.squares.slice();
+    newSquares[squareIndex] = { 
+      value: board.xIsNext ? 'X' : 'O', 
+      isWinning: false, 
+      isHovered: false 
+    };
     
-    setSquares(newSquares);
-    setXIsNext(!xIsNext);
-
     const winner = calculateWinner(newSquares);
+    let isDraw = false;
+    
     if (winner) {
-      setGameOver(true);
-      setScore(prev => ({ ...prev, [winner]: prev[winner as keyof typeof prev] + 1 }));
-      
       // Highlight winning squares
       const lines = [
         [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -64,60 +81,98 @@ const TicTacToe: React.FC = () => {
           newSquares[a] = { ...newSquares[a], isWinning: true };
           newSquares[b] = { ...newSquares[b], isWinning: true };
           newSquares[c] = { ...newSquares[c], isWinning: true };
-          setSquares(newSquares);
           break;
         }
       }
+      
+      setScore(prev => ({ ...prev, [winner]: prev[winner as keyof typeof prev] + 1 }));
     } else if (newSquares.every(square => square.value)) {
-      setGameOver(true);
+      isDraw = true;
       setScore(prev => ({ ...prev, draws: prev.draws + 1 }));
     }
+
+    const updatedBoard: GameBoard = {
+      ...board,
+      squares: newSquares,
+      xIsNext: !board.xIsNext,
+      gameOver: !!winner || isDraw,
+      winner
+    };
+
+    setGameBoards(prev => prev.map(b => b.id === boardId ? updatedBoard : b));
   };
 
-  const handleSquareHover = (i: number, isHovered: boolean) => {
-    if (!squares[i].value && !gameOver) {
-      const newSquares = squares.slice();
-      newSquares[i] = { ...newSquares[i], isHovered };
-      setSquares(newSquares);
+  const handleSquareHover = (boardId: number, squareIndex: number, isHovered: boolean) => {
+    const board = gameBoards[boardId];
+    if (!board.squares[squareIndex].value && !board.gameOver) {
+      const newSquares = board.squares.slice();
+      newSquares[squareIndex] = { ...newSquares[squareIndex], isHovered };
+      
+      setGameBoards(prev => prev.map(b => 
+        b.id === boardId 
+          ? { ...b, squares: newSquares }
+          : b
+      ));
     }
   };
 
   const resetGame = () => {
-    setSquares(Array(9).fill({ value: null, isWinning: false, isHovered: false }));
-    setXIsNext(true);
-    setGameOver(false);
+    const resetBoards: GameBoard[] = gameBoards.map(board => ({
+      ...board,
+      squares: Array(9).fill({ value: null, isWinning: false, isHovered: false }),
+      xIsNext: true,
+      gameOver: false,
+      winner: null
+    }));
+    setGameBoards(resetBoards);
   };
 
   const resetScore = () => {
     setScore({ X: 0, O: 0, draws: 0 });
   };
 
-  const renderSquare = (i: number) => {
+  const renderSquare = (boardId: number, squareIndex: number) => {
+    const board = gameBoards[boardId];
+    const square = board.squares[squareIndex];
+    
     return (
       <div
-        key={i}
-        className={`xoa-square-container ${squares[i].isWinning ? 'winning' : ''} ${squares[i].isHovered ? 'hovered' : ''}`}
-        onMouseEnter={() => handleSquareHover(i, true)}
-        onMouseLeave={() => handleSquareHover(i, false)}
-        onClick={() => handleClick(i)}
+        key={squareIndex}
+        className={`xoa-square-container ${square.isWinning ? 'winning' : ''} ${square.isHovered ? 'hovered' : ''}`}
+        onMouseEnter={() => handleSquareHover(boardId, squareIndex, true)}
+        onMouseLeave={() => handleSquareHover(boardId, squareIndex, false)}
+        onClick={() => handleClick(boardId, squareIndex)}
       >
         <div className="xoa-square-inner">
-          <span className="square-text">{squares[i].value}</span>
-          {squares[i].isHovered && !squares[i].value && !gameOver && (
-            <span className="hover-preview">{xIsNext ? 'X' : 'O'}</span>
+          <span className="square-text">{square.value}</span>
+          {square.isHovered && !square.value && !board.gameOver && (
+            <span className="hover-preview">{board.xIsNext ? 'X' : 'O'}</span>
           )}
         </div>
       </div>
     );
   };
 
-  const winner = calculateWinner(squares);
-  const isDraw = squares.every(square => square.value) && !winner;
-  const status = winner 
-    ? `🏆 ${winner} je pobednik!` 
-    : isDraw 
-    ? '🤝 Nerešeno!' 
-    : `🎯 Sledeći: ${xIsNext ? 'X' : 'O'}`;
+  const renderGameBoard = (board: GameBoard) => {
+    const status = board.winner 
+      ? `🏆 ${board.winner} pobedio!` 
+      : board.gameOver 
+      ? '🤝 Nerešeno!' 
+      : `🎯 ${board.xIsNext ? 'X' : 'O'}`;
+
+    return (
+      <div key={board.id} className="game-board-container">
+        <div className="board-header">
+          <h3 className="board-title">Tabla {board.id + 1}</h3>
+          <div className="board-status">{status}</div>
+        </div>
+        
+        <div className="board-grid">
+          {Array(9).fill(null).map((_, i) => renderSquare(board.id, i))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="xoa-container">
@@ -157,19 +212,17 @@ const TicTacToe: React.FC = () => {
         </div>
       </div>
 
-      {/* Game Card */}
-      <div className="xoa-game-card">
-        <div className="card-header">
-          <h1 className="game-title">TicTacToe</h1>
-          <div className="status-indicator">
-            <span className="status-text">{status}</span>
+      {/* Game Cards Container */}
+      <div className="xoa-game-cards-container">
+        <div className="cards-header">
+          <h1 className="game-title">XOArena - 8 Tabli</h1>
+          <div className="game-description">
+            Igrajte na 8 tabli istovremeno! Svaka tabla je nezavisna igra.
           </div>
         </div>
         
-        <div className="game-board">
-          <div className="board-grid">
-            {Array(9).fill(null).map((_, i) => renderSquare(i))}
-          </div>
+        <div className="boards-grid">
+          {gameBoards.map(board => renderGameBoard(board))}
         </div>
 
         <div className="game-actions">
